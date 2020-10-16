@@ -1,0 +1,86 @@
+---
+title: "Oppgave2"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(knitr)
+
+# The data set did not have the same name as the excel file you added to canvas.
+# this is of course a problem if you want to load it. 
+
+# It looks like missing values are named "na" in the data set, fixed this
+dataset <- read_excel("./data/dataset2-1.xlsx", na = "na")
+
+# The function below are used to view the data set. Only use if you actually want to look at variables.
+# When you are done with that, comment out! 
+# view(dataset)
+# summary(dataset)
+# glimpse(dataset)
+
+# Good! But not needed, you only have these variables in the data set, no need to select again
+variabler <- c("subject", "vo2max1", "w4mmol1", "vo2max2", "w4mmol2") %>%
+  print()
+
+
+dat2 <- dataset %>%
+  select(all_of(variabler)) %>%
+  print()
+
+# view(dat2)
+
+# An example, not needed here
+# var <- c(1,2,NA)
+
+# Since you have missing values, you either need to filter them out or 
+# tell the functions mean and sd to ignore them by setting na.rm = TRUE, I changed this below
+dat2 %>%
+  mutate(change = vo2max2 - vo2max1) %>%
+  group_by() %>%
+  summarise(sd.change = sd(change, na.rm = TRUE),
+            mean.test = mean(c(vo2max1, vo2max2), na.rm = TRUE),
+            te.abs = (sd.change / sqrt(2)),
+            te.relative = (te.abs / mean.test) * 100) %>%
+  print()
+
+
+# In lactate you do not have any missing values, 
+# we can use the code as is
+
+dat2 %>%
+      mutate(change = w4mmol2 - w4mmol1) %>%
+      group_by() %>%
+      summarise(sd.change = sd(change),
+            mean.test = mean(c(w4mmol1, w4mmol2)),
+            te.abs = (sd.change / sqrt(2)),
+            te.relative = (te.abs / mean.test) * 100) %>%
+  print()
+
+# Smallest worth whole change, the same as above, when you have NA you need to filter 
+# out or tel mean and sd functions to ignore the with na.rm = TRUE
+
+dat2 %>%
+  rowwise() %>%
+  mutate(m = mean(c(vo2max1, vo2max2), na.rm = TRUE)) %>%
+  ungroup() %>%
+  summarise(sd = sd(m, na.rm = TRUE),
+            swc = 0.2 * sd) %>%
+  print()
+
+dat2 %>%
+  rowwise() %>%
+  mutate(m = mean(c(w4mmol1, w4mmol2), na.rm = TRUE)) %>%
+  ungroup() %>%
+  summarise(sd = sd(m, na.rm = TRUE),
+            swc = 0.2 * sd) %>%
+  kable()
+
+# Nice! 
+
+# What I miss now is the interpretation, what do these numbers mean?
+
+```

@@ -1,0 +1,91 @@
+---
+title: "Arbeidskrav1_oppgave1"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+
+# Downloads the data set directly
+hypertrophy <- read_csv("https://ndownloader.figstatic.com/files/14702420")
+
+
+# These variables are to bes used, 
+var_interest <- c("SUB_ID", "GROUP", "CLUSTER", "AGE", "T1_BODY_MASS",
+                  "PERCENT_TYPE_II_T1", "Squat_3RM_kg", "DXA_LBM_1", 
+                  "DXA_FM_T1", "SQUAT_VOLUME")
+# Make a new smaller data set using the variables
+# store it in hyp 2
+hyp2 <- hypertrophy %>%
+  select(all_of(var_interest)) %>%
+  print()
+
+# Do not use glimpse in r markdown files if you want a nice formatted report
+# use it when looking at data sets... comment out when you are done
+# glimpse(hyp2)
+
+# Here I removed a lot of code thta did not give any useful output...
+
+# The code below creates the table, but to make it print nicely you need the kable function
+# in the end. It should work now 
+
+# load the package to get the right function 
+library(knitr)
+
+
+# Read about creating tables in the lesson and 
+# using ?kable in the console
+
+
+
+
+hyp2 %>%
+  filter(!is.na(CLUSTER)) %>%
+
+  select(-GROUP) %>%
+
+  pivot_longer(names_to = "variable", 
+               values_to = "value", 
+               cols = AGE:SQUAT_VOLUME) %>%
+
+  group_by(CLUSTER, variable) %>%
+    summarise(m = mean(value), 
+            s = sd(value)) %>% 
+    mutate(ms = paste(round(m, 1), 
+                    " (", 
+                    round(s, 1), 
+                    ")", sep = ""),
+
+         CLUSTER = factor(CLUSTER, levels = c("LOW", "HIGH"), 
+                          labels = c("LOW (n = 10)", 
+                                     "HIGH (n = 10)")),
+
+         variable = factor(variable, 
+                           levels = c("AGE", 
+                                      "T1_BODY_MASS", 
+                                      "DXA_LBM_1", 
+                                      "DXA_FM_T1", 
+                                      "PERCENT_TYPE_II_T1", 
+                                      "Squat_3RM_kg", 
+                                      "SQUAT_VOLUME"), 
+                           labels = c("Age (years)", 
+                                      "Body mass (kg)", 
+                                      "LBM (kg)", 
+                                      "FM (kg)", 
+                                      "Type II (%)", 
+                                      "Squat 3RM (kg)", 
+                                      "Total training volume (kg)"))) %>%
+  select(-m, -s) %>%
+
+  pivot_wider(names_from = CLUSTER, 
+              values_from = ms) %>%
+  arrange(variable) %>%
+  select(variable, `LOW (n = 10)`, `HIGH (n = 10)`) %>%
+
+  kable()
+
+
+```
+
